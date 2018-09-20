@@ -7,29 +7,49 @@ use PHPUnit\Framework\TestCase;
 
 class ParserTest extends TestCase
 {
-    public function testParser()
+    public function testGetKeyword()
     {
         $parser = new Parser();
 
-        $result = $parser->parser('foo:bar%20hello:world,world2%20datetime:2018-09-19T11:30:30+08:00..2018-09-18T22:30:30+08:00');
+        $parser->parser('foo:bar%20hello:world,world2%20datetime:2018-09-19T11:30:30+08:00..2018-09-18T22:30:30+08:00%20qoo:coo', ['foo']);
+
+        $result = $parser->getKeyword();
 
         $this->assertEquals([
-            'foo' => 'bar',
-            'hello' => ['world', 'world2'],
-            'datetime' => [new \DateTimeImmutable('2018-09-18T22:30:30+08:00'), new \DateTimeImmutable('2018-09-19T11:30:30+08:00')]
+            'foo' => 'bar'
         ], $result);
     }
 
-    public function testElseParser()
+    public function testGetMultiKeyword()
     {
         $parser = new Parser();
 
-        $result = $parser->parser('test%20foo:bar%20hello:world,world2%20datetime:5..15');
+        $parser->parser('foo:bar%20hello:world,world2%20datetime:5..15');
+
+        $result = $parser->getMultiKeyword();
 
         $this->assertEquals([
-            'foo' => 'bar',
-            'hello' => ['world', 'world2'],
-            'datetime' => ['5', '15']
+            'hello' => ['world', 'world2']
+        ], $result);
+    }
+
+    public function testGetRanges()
+    {
+        $parser = new Parser();
+
+        $parser->parser('foo:bar%20hello:world,world2%20datetime:2018-09-19T11:30:30+08:00..2018-09-18T22:30:30+08:00%20size:5..10');
+
+        $result = $parser->getRanges();
+
+        $this->assertEquals([
+            'datetime' => [
+                'from' => '2018-09-19T11:30:30+08:00',
+                'to' => '2018-09-18T22:30:30+08:00'
+            ],
+            'size' => [
+                'from' => '5',
+                'to' => '10'
+            ]
         ], $result);
     }
 }

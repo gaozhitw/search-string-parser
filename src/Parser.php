@@ -4,51 +4,103 @@ namespace SearchString;
 
 class Parser
 {
+    private $parsed = [];
+
+    private $fields = [];
+
+    /**
+     * @param $string
+     * @param array $fields
+     * @throws \Exception
+     */
     public function parser($string, $fields = [])
     {
+        $this->fields = $fields;
         if (empty($string)) {
-            return false;
+            throw new \Exception('string is empty.');
         }
+        $this->parseString($string);
+    }
+
+    public function getKeyword()
+    {
+        return $this->getKeywordPairs();
+    }
+
+    public function getMultiKeyword()
+    {
+        $multiKeywordPairs = $this->getMultiKeywordPairs();
+        $multiKeyword = [];
+        foreach ($multiKeywordPairs as $key => $keywords) {
+            $multiKeyword[$key] = explode(',', $keywords);
+        }
+        return $multiKeyword;
+    }
+
+    public function getRanges()
+    {
+        $rangePairs = $this->getRangePairs();
+        $ranges = [];
+        foreach ($rangePairs as $key => $rangeString) {
+            list($from, $to) = explode('..', $rangeString, 2);
+            $ranges[$key] = [
+                'from' => $from,
+                'to' => $to
+            ];
+        }
+        return $ranges;
+    }
+
+    private function getKeywordPairs()
+    {
+        $rangePairs = $this->getRangePairs();
+        $multiKeywordPairs = $this->getMultiKeywordPairs();
+        $excludedKey = array_keys(array_merge($rangePairs, $multiKeywordPairs));
+
+        return array_filter($this->parsed, function ($key) use ($excludedKey) {
+            if (in_array($key, $excludedKey)) {
+                return false;
+            }
+            return true;
+        }, ARRAY_FILTER_USE_KEY);
+    }
+
+    private function getRangePairs()
+    {
+        $rangePairs = [];
+        foreach ($this->parsed as $key => $value) {
+            if (strpos($value, '..') !== false) {
+                $rangePairs[$key] = $value;
+            }
+        }
+
+        return $rangePairs;
+    }
+
+    private function getMultiKeywordPairs()
+    {
+        $keywordPairs = [];
+        foreach ($this->parsed as $key => $value) {
+            if (strpos($value, ',') !== false) {
+                $keywordPairs[$key] = $value;
+            }
+        }
+
+        return $keywordPairs;
+    }
+
+    private function parseString($string)
+    {
         $string = rawurldecode($string);
         $pairs = array_values(array_filter(explode(' ', $string)));
 
-        $parsed = [];
-        foreach($pairs as $pair) {
+        foreach ($pairs as $pair) {
             list($key, $value) = explode(':', $pair, 2);
-            if (! isset($value)) {
+            if (! isset($value) || (! empty($this->fields) && ! in_array($key, $this->fields))) {
                 continue;
             }
-            if (strpos($value, ',') !== false) {
-                $value = array_map('trim', explode(',', $value));
-            } elseif (strpos($value, '..') !== false) {
-                $value = array_map('trim', explode('..', $value, 2));
-                sort($value);
-                if (strpos($key, 'date') !== false) {
-                    $value = array_map(function ($item) {
-                        try {
-                            return new \DateTimeImmutable($item);
-                        } catch (\Exception $e) {
-                            return $item;
-                        }
-                    }, $value);
-                }
-            }
-            $parsed[$key] = $value;
-        }
 
-        if (! empty($fields)) {
-            $parsed = array_filter($parsed, function ($key) use ($fields) {
-                if (! in_array($key, $fields)) {
-                    return false;
-                }
-                return true;
-            }, ARRAY_FILTER_USE_KEY);
+            $this->parsed[$key] = $value;
         }
-
-        if (! empty($parsed)) {
-            return $parsed;
-        }
-
-        return false;
     }
 }
