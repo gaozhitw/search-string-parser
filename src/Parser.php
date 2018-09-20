@@ -95,7 +95,11 @@ class Parser
         $pairs = array_values(array_filter(explode(' ', $string)));
 
         foreach ($pairs as $pair) {
-            list($key, $value) = explode(':', $pair, 2);
+            $segments = explode(':', $pair, 2);
+            if (count($segments) !== 2) {
+                continue;
+            }
+            list($key, $value) = $segments;
             if (! isset($value) || (! empty($this->fields) && ! in_array($key, $this->fields))) {
                 continue;
             }
