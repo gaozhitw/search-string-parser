@@ -11,12 +11,12 @@ class Result
         $this->parsed = $parsed;
     }
 
-    public function getKeyword()
+    public function getKeyword(): array
     {
         return $this->getKeywordPairs();
     }
 
-    public function getMultiKeyword()
+    public function getMultiKeyword(): array
     {
         $multiKeywordPairs = $this->getMultiKeywordPairs();
         $multiKeyword = [];
@@ -26,7 +26,7 @@ class Result
         return $multiKeyword;
     }
 
-    public function getRanges()
+    public function getRanges(): array
     {
         $rangePairs = $this->getRangePairs();
         $ranges = [];
@@ -40,7 +40,7 @@ class Result
         return $ranges;
     }
 
-    private function getKeywordPairs()
+    private function getKeywordPairs(): array
     {
         $rangePairs = $this->getRangePairs();
         $multiKeywordPairs = $this->getMultiKeywordPairs();
@@ -54,7 +54,7 @@ class Result
         }, ARRAY_FILTER_USE_KEY);
     }
 
-    private function getRangePairs()
+    private function getRangePairs(): array
     {
         $rangePairs = [];
         foreach ($this->parsed as $key => $value) {
@@ -66,7 +66,7 @@ class Result
         return $rangePairs;
     }
 
-    private function getMultiKeywordPairs()
+    private function getMultiKeywordPairs(): array
     {
         $keywordPairs = [];
         foreach ($this->parsed as $key => $value) {
