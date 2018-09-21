@@ -4,6 +4,7 @@ namespace SearchString\Test;
 
 use SearchString\Parser;
 use PHPUnit\Framework\TestCase;
+use SearchString\Result;
 
 class ParserTest extends TestCase
 {
@@ -11,35 +12,41 @@ class ParserTest extends TestCase
     {
         $parser = new Parser();
 
-        $parser->parser('foo:bar%20hello:world,world2%20datetime:2018-09-19T11:30:30+08:00..2018-09-18T22:30:30+08:00%20qoo:coo', ['foo']);
+        $result = $parser->parser('foo:bar%20hello:world,world2%20datetime:2018-09-19T11:30:30+08:00..2018-09-18T22:30:30+08:00%20qoo:coo', ['foo']);
 
-        $result = $parser->getKeyword();
+        $this->assertInstanceOf(Result::class, $result);
+
+        $keyword = $result->getKeyword();
 
         $this->assertEquals([
             'foo' => 'bar'
-        ], $result);
+        ], $keyword);
     }
 
     public function testGetMultiKeyword()
     {
         $parser = new Parser();
 
-        $parser->parser('foo:bar%20hello:world,world2%20datetime:5..15');
+        $result = $parser->parser('foo:bar%20hello:world,world2%20datetime:5..15');
 
-        $result = $parser->getMultiKeyword();
+        $this->assertInstanceOf(Result::class, $result);
+
+        $multiKeyword = $result->getMultiKeyword();
 
         $this->assertEquals([
             'hello' => ['world', 'world2']
-        ], $result);
+        ], $multiKeyword);
     }
 
     public function testGetRanges()
     {
         $parser = new Parser();
 
-        $parser->parser('foo:bar%20hello:world,world2%20datetime:2018-09-19T11:30:30+08:00..2018-09-18T22:30:30+08:00%20size:5..10');
+        $result = $parser->parser('foo:bar%20hello:world,world2%20datetime:2018-09-19T11:30:30+08:00..2018-09-18T22:30:30+08:00%20size:5..10');
 
-        $result = $parser->getRanges();
+        $this->assertInstanceOf(Result::class, $result);
+
+        $ranges = $result->getRanges();
 
         $this->assertEquals([
             'datetime' => [
@@ -50,6 +57,23 @@ class ParserTest extends TestCase
                 'from' => '5',
                 'to' => '10'
             ]
-        ], $result);
+        ], $ranges);
+    }
+
+    public function testEmptyStringGet()
+    {
+        $parser = new Parser();
+
+        $result = $parser->parser('');
+
+        $this->assertInstanceOf(Result::class, $result);
+
+        $keyword = $result->getKeyword();
+        $multiKeyword = $result->getMultiKeyword();
+        $ranges = $result->getRanges();
+
+        $this->assertEquals([], $keyword);
+        $this->assertEquals([], $multiKeyword);
+        $this->assertEquals([], $ranges);
     }
 }
