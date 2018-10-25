@@ -12,14 +12,15 @@ class ParserTest extends TestCase
     {
         $parser = new Parser();
 
-        $result = $parser->parser('foo:bar%20hello:world,world2%20datetime:2018-09-19T11:30:30+08:00..2018-09-18T22:30:30+08:00%20qoo:coo', ['foo']);
+        $result = $parser->parser('medium:(not%20medium)%20foo:bar%20hello:world,world2%20datetime:2018-09-19T11:30:30+08:00..2018-09-18T22:30:30+08:00%20qoo:coo', ['foo', 'medium']);
 
         $this->assertInstanceOf(Result::class, $result);
 
         $keyword = $result->getKeyword();
 
         $this->assertEquals([
-            'foo' => 'bar'
+            'foo' => 'bar',
+            'medium' => '(not medium)'
         ], $keyword);
     }
 

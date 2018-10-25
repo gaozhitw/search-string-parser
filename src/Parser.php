@@ -22,11 +22,14 @@ class Parser
     {
         $string = rawurldecode($string);
         $pairs = array_values(array_filter(explode(' ', $string)));
-
         $parsed = [];
+        $lastKey = '';
         foreach ($pairs as $pair) {
             $segments = explode(':', $pair, 2);
             if (count($segments) !== 2) {
+                if (! empty($lastKey)) {
+                    $parsed[$lastKey] = $parsed[$lastKey] . ' ' . $pair;
+                }
                 continue;
             }
             list($key, $value) = $segments;
@@ -34,6 +37,7 @@ class Parser
                 continue;
             }
 
+            $lastKey = $key;
             $parsed[$key] = $value;
         }
 
